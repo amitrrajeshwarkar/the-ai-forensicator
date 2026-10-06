@@ -20,6 +20,18 @@ export NFX_OS
 nfx_is_linux() { [ "$NFX_OS" = "linux" ]; }
 nfx_is_macos() { [ "$NFX_OS" = "macos" ]; }
 nfx_have()     { command -v "$1" >/dev/null 2>&1; }
+# nfx_with_timeout SECS cmd... : run cmd with stdin closed and kill it after SECS seconds.
+# Portable (bash 3.2, no coreutils timeout on macOS). Returns the command's exit code, or 124 on timeout.
+nfx_with_timeout() {
+  local secs="$1" p w rc; shift
+  "$@" </dev/null &
+  p=$!
+  ( sleep "$secs"; kill "$p" 2>/dev/null ) >/dev/null 2>&1 &
+  w=$!
+  wait "$p" 2>/dev/null; rc=$?
+  if kill "$w" 2>/dev/null; then wait "$w" 2>/dev/null; else rc=124; fi
+  return $rc
+}
 nfx_is_root()  { [ "$(id -u)" = "0" ]; }
 
 # ---------------------------------------------------------------------------

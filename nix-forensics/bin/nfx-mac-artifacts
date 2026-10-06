@@ -57,7 +57,8 @@ spctl --status 2>/dev/null | grep -qi disabled && nfx_flag "GATEKEEPER-OFF" "Gat
 csrutil status 2>/dev/null | grep -qi disabled && nfx_flag "SIP-OFF" "SIP is disabled"
 [ "$(defaults read /Library/Preferences/com.apple.alf globalstate 2>/dev/null)" = "0" ] && nfx_info "application firewall is off"
 nfx_section "Gatekeeper per-app overrides (spctl --list)"
-spctl --list 2>/dev/null | head -"$LIMIT"
+nfx_with_timeout 15 spctl --list 2>/dev/null | head -"$LIMIT"
+[ "${PIPESTATUS[0]}" = 124 ] && nfx_warn "spctl --list timed out after 15s (deprecated on recent macOS); skipped"
 nfx_section "XProtect / MRT / XProtect Remediator recent activity"
 log show --last "${mins}m" --predicate 'subsystem == "com.apple.XProtectFramework" OR process == "XProtectRemediator" OR process == "MRT"' --style compact 2>/dev/null | grep -iE 'detect|remediat|found|malware' | tail -20
 
