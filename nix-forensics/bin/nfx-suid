@@ -75,8 +75,11 @@ while IFS='|' read -r h md u g mt f; do
 done < "$INV"
 
 if nfx_is_linux && nfx_have getcap; then
-  nfx_header "File capabilities (getcap -r)"
-  CAPS=$(getcap -r / 2>/dev/null)
+  nfx_header "File capabilities (getcap on scanned paths)"
+  # Walk only the scanned paths and stay on one filesystem (-xdev): a plain `getcap -r /` follows
+  # network and host mounts such as /mnt/c on WSL and can run for a very long time.
+  # shellcheck disable=SC2086
+  CAPS=$(find "${PATHS[@]}" -xdev $PRUNE -type f -print0 2>/dev/null | xargs -0 getcap 2>/dev/null)
   printf '%s\n' "$CAPS"
   printf '%s\n' "$CAPS" | grep -E 'cap_setuid|cap_setgid|cap_sys_admin|cap_dac_override|cap_dac_read_search|cap_sys_ptrace|cap_sys_module|cap_chown|cap_fowner|cap_net_raw|cap_net_admin|=ep|cap_sys_rawio' |
     grep -vE '^/usr/(s)?bin/(ping|ping6|arping|clockdiff|traceroute6?|mtr-packet|dumpcap|fping|newuidmap|newgidmap|gnome-keyring-daemon)|/usr/lib/x86_64-linux-gnu/gstreamer|/usr/libexec/|/snap/' |
