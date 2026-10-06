@@ -15,7 +15,22 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Run nix-forensics smoke test
-        run: bash nix-forensics/tests/smoke.sh
+      - name: Run nix-forensics smoke test (10-minute watchdog)
+        shell: bash
+        run: |
+          bash nix-forensics/tests/smoke.sh > smoke.log 2>&1 &
+          pid=$!
+          for i in $(seq 1 120); do kill -0 "$pid" 2>/dev/null || break; sleep 5; done
+          if kill -0 "$pid" 2>/dev/null; then
+            echo "::error title=smoke test hung::last lines: $(tail -4 smoke.log | tr '\n' '|')"
+            ps -axo pid,etime,command | grep -E 'nfx-|find |log show|sfltool|sqlite3|codesign|spctl|profiles|system_profiler|du ' | grep -v grep | head -12 |
+              while IFS= read -r l; do echo "::warning title=running::$l"; done
+            pkill -P "$pid"; kill "$pid"; cat smoke.log; exit 1
+          fi
+          wait "$pid"; rc=$?
+          cat smoke.log
+          grep -E 'FAIL|total:' smoke.log | head -10 | while IFS= read -r l; do echo "::notice title=smoke::$l"; done
+          exit $rc
