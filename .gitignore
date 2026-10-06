@@ -1,0 +1,6 @@
+# Case output and evidence never belong in this repository
+case-*/
+*.tar.gz
+*.body
+out/
+.DS_Store
