@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# nfx-analyze - correlate nfx-triage output and explain it (see ai-triage/README.md)
+here=$(cd "$(dirname "$0")/.." && pwd)
+PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m nfx_ai "$@"
