@@ -14,7 +14,7 @@ Incident responders on Linux and macOS often lack what Windows investigators tak
 | Component | Status | What it does |
 | --- | --- | --- |
 | [`nix-forensics/`](nix-forensics/) | Available | 22 `nfx-*` live-response tools: persistence, processes, network, SSH, shell history, timeline, SUID, kernel modules, containers, webshells, IOC sweeps, macOS artifacts, and a one-command triage collector |
-| AI triage layer | Planned | Summarise `nfx` findings into a ranked, cited triage report an analyst can verify line by line |
+| [`ai-triage/`](ai-triage/) | Early release (v0.1) | `nfx-analyze`: clusters noise, correlates findings across tools, and (optionally) uses Claude or a local model to explain each lead, with every claim checked against the evidence |
 
 ## Quick start
 
@@ -24,6 +24,7 @@ cd the-ai-forensicator/nix-forensics
 sudo bin/nfx-triage --case demo-001          # full collection, packaged with a sha256 manifest
 sudo bin/nfx-persistence --since 7d          # or ask a single question
 tests/smoke.sh                               # verify every tool on this host
+../ai-triage/bin/nfx-analyze nfx-triage-*/   # ranked, explained report from a triage run
 ```
 
 Pure bash 3.2+ with no dependencies, so the folder can be copied to a suspect host and run immediately. Every tool is read-only on the host. Full documentation: [nix-forensics/README.md](nix-forensics/README.md). New to Linux forensics? Start with the [beginner's guide](nix-forensics/docs/LINUX-FORENSICS-GUIDE.md).
@@ -31,7 +32,7 @@ Pure bash 3.2+ with no dependencies, so the folder can be copied to a suspect ho
 ## Design principles
 
 - **One artifact, one tool.** Each script is short enough to read and explain, which matters when findings end up in a report or in court.
-- **Flags are leads, not verdicts.** Tools print `[!] [TAG]` lines for an analyst to review. The planned AI layer follows the same rule: it ranks and explains, and every claim points back to the raw line that supports it.
+- **Flags are leads, not verdicts.** Tools print `[!] [TAG]` lines for an analyst to review. The AI layer (`nfx-analyze`) follows the same rule: it ranks and explains, and every claim points back to the raw line that supports it.
 - **Mapped to MITRE ATT&CK.** Each tool lists the techniques its checks cover.
 - **Tested on every change.** CI runs the full smoke test on Ubuntu and macOS.
 
@@ -40,7 +41,7 @@ Pure bash 3.2+ with no dependencies, so the folder can be copied to a suspect ho
 - [x] nix-forensics: 22 live-response tools for Linux and macOS
 - [x] CI smoke tests on Ubuntu and macOS
 - [ ] Structured JSON output for every tool
-- [ ] AI triage layer: ranked findings with citations to the source evidence
+- [x] AI triage layer: ranked findings with citations to the source evidence (`nfx-analyze` v0.1)
 - [ ] Worked investigation examples built in a lab environment
 
 ## Author

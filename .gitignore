@@ -4,3 +4,9 @@ case-*/
 *.body
 out/
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+# Analysis reports generated from real cases
+analysis.md
